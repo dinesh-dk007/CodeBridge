@@ -1,0 +1,89 @@
+{
+  "name": "contextbridge-ai",
+  "displayName": "ContextBridge AI",
+  "description": "A foundation for portable, user-approved project context in VS Code.",
+  "version": "0.1.0",
+  "publisher": "contextbridge",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:contextbridge.analyzeProject",
+    "onCommand:contextbridge.createMemorySnapshot",
+    "onCommand:contextbridge.exportMemory",
+    "onCommand:contextbridge.importMemory",
+    "onCommand:contextbridge.viewProjectMemory",
+    "onCommand:contextbridge.addProjectRequirement",
+    "onCommand:contextbridge.addDevelopmentDecision",
+    "onCommand:contextbridge.updateCurrentTask",
+    "onCommand:contextbridge.addPendingTask",
+    "onCommand:contextbridge.addKnownIssue",
+    "onCommand:contextbridge.addCodingPreference",
+    "onCommand:contextbridge.refreshProjectAnalysis"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "contextbridge.analyzeProject",
+        "title": "ContextBridge: Analyze Project"
+      },
+      {
+        "command": "contextbridge.createMemorySnapshot",
+        "title": "ContextBridge: Create Memory Snapshot"
+      },
+      {
+        "command": "contextbridge.exportMemory",
+        "title": "ContextBridge: Export Memory"
+      },
+      {
+        "command": "contextbridge.importMemory",
+        "title": "ContextBridge: Import Memory"
+      },
+      {
+        "command": "contextbridge.viewProjectMemory",
+        "title": "ContextBridge: View Project Memory"
+      },
+      {
+        "command": "contextbridge.addProjectRequirement",
+        "title": "ContextBridge: Add Project Requirement"
+      },
+      {
+        "command": "contextbridge.addDevelopmentDecision",
+        "title": "ContextBridge: Add Development Decision"
+      },
+      {
+        "command": "contextbridge.updateCurrentTask",
+        "title": "ContextBridge: Update Current Task"
+      },
+      {
+        "command": "contextbridge.addPendingTask",
+        "title": "ContextBridge: Add Pending Task"
+      },
+      {
+        "command": "contextbridge.addKnownIssue",
+        "title": "ContextBridge: Add Known Issue"
+      },
+      {
+        "command": "contextbridge.addCodingPreference",
+        "title": "ContextBridge: Add Coding Preference"
+      },
+      {
+        "command": "contextbridge.refreshProjectAnalysis",
+        "title": "ContextBridge: Refresh Project Analysis"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.0.0"
+  }
+}
