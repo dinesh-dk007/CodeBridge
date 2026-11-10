@@ -1,27 +1,12 @@
 import * as vscode from "vscode";
-import { CurrentTaskChoice, prepareImportedMemory, replacePortableContext } from "../services/importService";
-import {
-  getMemoryUri,
-  loadMemory,
-  memoryFileExists,
-  saveMemory,
-} from "../services/memoryService";
-import { scanWorkspace, WorkspaceScanCancelledError } from "../services/workspaceScanner";
+import { importPortablePackage } from "../services/importService";
 import { parseAndValidateMemoryPackage, UnsupportedPackageVersionError } from "../utils/packageValidator";
 import { sanitizePortableValue } from "../utils/memorySanitizer";
+import { WorkspaceScanCancelledError } from "../services/workspaceScanner";
 
 const noWorkspaceMessage = "No workspace folder is open. Please open a project folder and try again.";
 const invalidPackageMessage = "The selected file is not a valid ContextBridge memory package.";
 const maxPackageBytes = 10 * 1024 * 1024;
-const contextChoices = [
-  { label: "Merge Imported Context", value: "merge" },
-  { label: "Replace Existing Context", value: "replace" },
-  { label: "Cancel", value: "cancel" },
-] as const;
-const taskChoices = [
-  { label: "Keep Current Workspace Task", value: "keepCurrent" },
-  { label: "Use Imported Task", value: "useImported" },
-] as const;
 
 export async function importMemory(outputChannel: vscode.OutputChannel): Promise<void> {
   const folder = vscode.workspace.workspaceFolders?.[0];
@@ -60,64 +45,17 @@ export async function importMemory(outputChannel: vscode.OutputChannel): Promise
       new TextEncoder().encode(JSON.stringify(safePackage)),
     );
 
-    const hasExistingMemory = await memoryFileExists(getMemoryUri(folder));
-    const existingMemory = hasExistingMemory ? await loadMemory(folder) : undefined;
-    let strategy: "merge" | "replace" | "create" = "create";
-
-    if (existingMemory) {
-      const selectedStrategy = await vscode.window.showQuickPick(contextChoices, {
-        placeHolder: "Choose how to apply the imported context",
-        ignoreFocusOut: true,
-      });
-      if (!selectedStrategy || selectedStrategy.value === "cancel") {
-        outputChannel.appendLine("Memory import cancelled.");
-        return;
-      }
-      strategy = selectedStrategy.value;
-    }
-
-    outputChannel.appendLine("Analyzing current workspace...");
-    const analysis = await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: "ContextBridge AI: Analyzing workspace for import...",
-        cancellable: true,
-      },
-      async (progress, cancellationToken) => scanWorkspace(folder, {
-        cancellationToken,
-        onProgress: (message) => progress.report({ message }),
-      }),
-    );
-
-    let currentTaskChoice: CurrentTaskChoice | undefined;
-    if (strategy === "merge"
-      && existingMemory?.developmentState.currentTask.trim()
-      && portablePackage.memory.developmentState.currentTask.trim()) {
-      const selectedTask = await vscode.window.showQuickPick(taskChoices, {
-        placeHolder: "Both memories have a current task. Which one should be kept?",
-        ignoreFocusOut: true,
-      });
-      if (!selectedTask) {
-        outputChannel.appendLine("Memory import cancelled.");
-        return;
-      }
-      currentTaskChoice = selectedTask.value;
-    }
-
-    outputChannel.appendLine("Preparing imported context...");
-    const result = prepareImportedMemory(
-      analysis,
+    const result = await importPortablePackage({
+      folder,
+      outputChannel,
       portablePackage,
-      existingMemory,
-      currentTaskChoice,
-    );
-    if (strategy === "replace") {
-      replacePortableContext(result, portablePackage.memory);
+    });
+
+    if (result === "cancelled") {
+      outputChannel.appendLine("Memory import cancelled by the user.");
+      return;
     }
 
-    outputChannel.appendLine("Saving project memory...");
-    await saveMemory(folder, result);
-    outputChannel.appendLine("Memory import completed successfully.");
     await vscode.window.showInformationMessage("ContextBridge AI: Memory imported successfully.");
   } catch (error) {
     if (error instanceof WorkspaceScanCancelledError) {

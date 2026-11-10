@@ -1,16 +1,97 @@
+import * as vscode from "vscode";
 import {
   MemoryExportPackage,
   PortableProjectMemory,
 } from "../models/exportPackage";
 import { ProjectAnalysis } from "../models/projectAnalysis";
 import { ProjectDecision, ProjectMemory } from "../models/projectMemory";
-import { createProjectMemory } from "./memoryService";
+import { createProjectMemory, getMemoryUri, loadMemory, memoryFileExists, saveMemory } from "./memoryService";
 import { sanitizePortableValue } from "../utils/memorySanitizer";
+import { scanWorkspace } from "./workspaceScanner";
 
 export const IMPORT_SOURCE = "ContextBridge portable memory package";
 export const DEFAULT_ARCHITECTURE_OVERVIEW = "Architecture details have not yet been documented.";
 
 export type CurrentTaskChoice = "keepCurrent" | "useImported";
+export type ImportWorkflowResult = "imported" | "cancelled";
+
+const contextChoices = [
+  { label: "Merge Imported Context", value: "merge" },
+  { label: "Replace Existing Context", value: "replace" },
+  { label: "Cancel", value: "cancel" },
+] as const;
+
+const taskChoices = [
+  { label: "Keep Current Workspace Task", value: "keepCurrent" },
+  { label: "Use Imported Task", value: "useImported" },
+] as const;
+
+export async function importPortablePackage(options: {
+  folder: vscode.WorkspaceFolder;
+  outputChannel: vscode.OutputChannel;
+  portablePackage: MemoryExportPackage;
+  existingMemory?: ProjectMemory;
+  explicitStrategy?: "merge" | "replace" | "create" | "cancel";
+  explicitCurrentTaskChoice?: CurrentTaskChoice;
+}): Promise<ImportWorkflowResult> {
+  const hasExistingMemory = options.existingMemory !== undefined || await memoryFileExists(getMemoryUri(options.folder));
+  const currentMemory = options.existingMemory ?? (hasExistingMemory ? await loadMemory(options.folder) : undefined);
+
+  let strategy: "merge" | "replace" | "create" | "cancel" = options.explicitStrategy ?? "create";
+  if (!options.explicitStrategy && currentMemory) {
+    const selectedStrategy = await vscode.window.showQuickPick(contextChoices, {
+      placeHolder: "Choose how to apply the imported context",
+      ignoreFocusOut: true,
+    });
+    if (!selectedStrategy || selectedStrategy.value === "cancel") {
+      options.outputChannel.appendLine("Memory import cancelled.");
+      return "cancelled";
+    }
+    strategy = selectedStrategy.value;
+  }
+
+  const analysis = await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: "ContextBridge AI: Analyzing workspace for import...",
+      cancellable: true,
+    },
+    async (progress, cancellationToken) => scanWorkspace(options.folder, {
+      cancellationToken,
+      onProgress: (message) => progress.report({ message }),
+    }),
+  );
+
+  let currentTaskChoice = options.explicitCurrentTaskChoice;
+  if (!currentTaskChoice && strategy === "merge"
+    && currentMemory?.developmentState.currentTask.trim()
+    && options.portablePackage.memory.developmentState.currentTask.trim()) {
+    const selectedTask = await vscode.window.showQuickPick(taskChoices, {
+      placeHolder: "Both memories have a current task. Which one should be kept?",
+      ignoreFocusOut: true,
+    });
+    if (!selectedTask) {
+      options.outputChannel.appendLine("Memory import cancelled.");
+      return "cancelled";
+    }
+    currentTaskChoice = selectedTask.value;
+  }
+
+  const result = prepareImportedMemory(
+    analysis,
+    options.portablePackage,
+    currentMemory,
+    currentTaskChoice,
+  );
+
+  if (strategy === "replace") {
+    replacePortableContext(result, options.portablePackage.memory);
+  }
+
+  await saveMemory(options.folder, result);
+  options.outputChannel.appendLine("Memory import completed successfully.");
+  return "imported";
+}
 
 export function prepareImportedMemory(
   analysis: ProjectAnalysis,

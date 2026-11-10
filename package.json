@@ -15,6 +15,10 @@
     "onCommand:contextbridge.createMemorySnapshot",
     "onCommand:contextbridge.exportMemory",
     "onCommand:contextbridge.importMemory",
+    "onCommand:contextbridge.generateTransferCode",
+    "onCommand:contextbridge.importUsingTransferCode",
+    "onCommand:contextbridge.generateCloudTransferCode",
+    "onCommand:contextbridge.importUsingCloudTransferCode",
     "onCommand:contextbridge.viewProjectMemory",
     "onCommand:contextbridge.addProjectRequirement",
     "onCommand:contextbridge.addDevelopmentDecision",
@@ -42,6 +46,22 @@
       {
         "command": "contextbridge.importMemory",
         "title": "ContextBridge: Import Memory"
+      },
+      {
+        "command": "contextbridge.generateTransferCode",
+        "title": "ContextBridge: Generate Transfer Code"
+      },
+      {
+        "command": "contextbridge.importUsingTransferCode",
+        "title": "ContextBridge: Import Using Transfer Code"
+      },
+      {
+        "command": "contextbridge.generateCloudTransferCode",
+        "title": "ContextBridge: Generate Cloud Transfer Code"
+      },
+      {
+        "command": "contextbridge.importUsingCloudTransferCode",
+        "title": "ContextBridge: Import Using Cloud Transfer Code"
       },
       {
         "command": "contextbridge.viewProjectMemory",
@@ -75,7 +95,17 @@
         "command": "contextbridge.refreshProjectAnalysis",
         "title": "ContextBridge: Refresh Project Analysis"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "ContextBridge",
+      "properties": {
+        "contextBridge.backendUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Base URL for the local ContextBridge backend API."
+        }
+      }
+    }
   },
   "scripts": {
     "compile": "tsc -p ./",

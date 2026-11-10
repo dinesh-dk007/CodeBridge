@@ -6,7 +6,7 @@ ContextBridge AI is a VS Code extension project exploring portable, user-approve
 
 The **ContextBridge: Analyze Project** command scans the first open workspace folder and reports project name, root path, analysis time, file structure, detected languages, important files, and safe root `package.json` metadata. Results appear in the `ContextBridge AI` Output Channel.
 
-The scanner skips common generated/vendor directories, sensitive files (including `.env*`, `id_rsa`, `id_ed25519`, and `credentials.json`), and symbolic links. It reads only root `package.json` content, and extracts only name, version, description, and dependency names. All other project files are listed but not read. No project data is sent anywhere.
+The scanner skips common generated/vendor directories, sensitive files (including `.env*`, `id_rsa`, `id_ed25519`, and `credentials.json`), and symbolic links. It reads only root `package.json` content, and extracts only name, version, description, and dependency names. All other project files are listed but not read. Project analysis itself stays local. Backend transfer commands send only a sanitized portable memory package to the configured backend.
 
 **ContextBridge: Create Memory Snapshot** reuses the scanner and stores a version `1.0.0` structured JSON snapshot at `.contextbridge/memory.json`. It initializes requirements, decisions, development state, and preferences as empty values rather than inferring them. If a snapshot already exists, the extension asks before replacing it. The `.contextbridge` directory is created only during snapshot creation, not during analysis.
 
@@ -50,6 +50,10 @@ The registered commands are:
 - ContextBridge: Create Memory Snapshot
 - ContextBridge: Export Memory
 - ContextBridge: Import Memory
+- ContextBridge: Generate Transfer Code
+- ContextBridge: Import Using Transfer Code
+- ContextBridge: Generate Cloud Transfer Code
+- ContextBridge: Import Using Cloud Transfer Code
 - ContextBridge: View Project Memory
 - ContextBridge: Add Project Requirement
 - ContextBridge: Add Development Decision
@@ -59,7 +63,15 @@ The registered commands are:
 - ContextBridge: Add Coding Preference
 - ContextBridge: Refresh Project Analysis
 
-Analyze Project, Create Memory Snapshot, View Project Memory, the seven local memory management commands, local Memory Export, and local Memory Import are implemented. AI integrations are not implemented.
+Analyze Project, Create Memory Snapshot, View Project Memory, the seven local memory management commands, local Memory Export, local Memory Import, the local prototype transfer-code workflow, and the local backend transfer workflow are implemented. AI integrations are not implemented.
+
+## Transfer types
+
+- Local Transfer Codes (Milestone 7): Stored in VS Code global state, usable only on the same machine.
+- Backend Transfer Codes (Milestone 8A): Sent to the local Express API.
+- Persistent backend storage (Milestone 8B): Transfer records are stored in MongoDB and survive backend restarts. Records expire after 30 minutes; MongoDB TTL cleanup is asynchronous, and the API also checks expiration on retrieval.
+
+To run the backend, open a terminal in `backend`, run `npm install`, copy `.env.example` to `.env`, set `MONGODB_URI`, then run `npm run compile` and `npm start`. The extension's `contextBridge.backendUrl` setting defaults to `http://localhost:3000`. MongoDB provides persistence, but the service is still intended for local use and is not cloud deployment.
 
 **ContextBridge: Import Memory** accepts version `1.0.0` `.contextbridge.json` packages. It scans the current workspace and keeps its project identity and structure, while bringing in portable architecture overview, requirements, decisions, development state, and preferences. If local memory exists, the user chooses merge, replace, or cancel. Merge deduplicates lists, asks about conflicting non-empty current tasks, and prefers the current architecture overview. Import never restores an old workspace path and does not transmit data.
 
