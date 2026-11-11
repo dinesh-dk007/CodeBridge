@@ -188,4 +188,4 @@ Source code and project updates are maintained in the project repository.
 
 ## License
 
-A license has not yet been added to this repository.
+This project is licensed under the MIT License. See the LICENSE file for details.

@@ -4,6 +4,8 @@
   "description": "Portable, user-controlled project context and AI development memory transfer across compatible coding environments.",
   "version": "0.1.0",
   "publisher": "contextbridge",
+  "icon": "images/icon.png",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/dinesh-dk007/CodeBridge.git"
