@@ -1,0 +1,16 @@
+.git/**
+**/.git/**
+.vscode/**
+**/node_modules/**
+backend/**
+src/**
+**/*.ts
+**/*.map
+**/*.tsbuildinfo
+.gitignore
+.vscodeignore
+package-lock.json
+tsconfig.json
+PACKAGING.md
+**/.contextbridge/**
+*.vsix
