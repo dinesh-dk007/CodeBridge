@@ -50,8 +50,8 @@ async function startServer(): Promise<void> {
     console.error("MongoDB disconnected; transfer requests will report service errors until storage is restored.");
   });
 
-  app.listen(port, "localhost", () => {
-    console.log(`ContextBridge backend listening on http://localhost:${port}`);
+  app.listen(port, () => {
+    console.log(`ContextBridge backend listening on port ${port}.`);
   });
 }
 

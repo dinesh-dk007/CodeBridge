@@ -48,4 +48,12 @@ Transfer codes expire after 30 minutes. MongoDB has a TTL index on `expiresAt`; 
 
 Only the existing sanitized ContextBridge portable package is stored. The backend validates package shape and rejects obvious machine-specific paths. Transfer records use an indexed unique code and do not expose MongoDB `_id` or `__v` fields through the API.
 
-This backend requires MongoDB to be running and is not a cloud deployment. Do not put credentials in the package or commit database connection strings.
+## Production deployment
+
+The backend can be deployed independently from the extension. Configure the service to use the `backend` directory as its working directory, install dependencies with `npm install`, build with `npm run build`, and start with `npm start` (or use the provider's separate build and start command settings). The server listens on the deployment-provided `PORT`, falling back to `3000` for local use, and binds to all network interfaces so a hosting platform can route requests to it.
+
+Set `MONGODB_URI` in the deployment platform's environment-variable or secret settings to a MongoDB database the service can reach. Do not commit `.env` or paste a live connection string into source control. The checked-in `.env.example` contains placeholders only. Confirm deployment health at `/health`; it returns HTTP `200` with `"database": "connected"` only when the MongoDB connection is ready, otherwise HTTP `503`.
+
+Configure the extension's `contextBridge.backendUrl` setting separately when targeting a deployed service. Its default remains `http://localhost:3000`; this milestone does not change it. Configure HTTPS and any network-access restrictions at the hosting platform or reverse proxy. This milestone prepares the service only and does not deploy it.
+
+Transfer packages continue to expire after 30 minutes. MongoDB TTL deletion is asynchronous, and the API also checks expiration explicitly during retrieval.
