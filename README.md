@@ -103,7 +103,7 @@ The extension uses the following configuration:
 
 ```json
 {
-  "contextBridge.backendUrl": "http://localhost:3000"
+  "contextBridge.backendUrl": "https://codebridge-0cf6.onrender.com"
 }
 ```
 

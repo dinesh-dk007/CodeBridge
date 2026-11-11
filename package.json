@@ -115,7 +115,7 @@
       "properties": {
         "contextBridge.backendUrl": {
           "type": "string",
-          "default": "http://localhost:3000",
+          "default": "https://codebridge-0cf6.onrender.com",
           "description": "Base URL for the local ContextBridge backend API."
         }
       }

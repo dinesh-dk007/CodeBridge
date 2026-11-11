@@ -111,7 +111,7 @@ export class BackendTransferService {
   }
 
   private resolveBaseUrl(): string {
-    const configuredValue = vscode.workspace.getConfiguration("contextBridge").get<string>("backendUrl", "http://localhost:3000");
+    const configuredValue = vscode.workspace.getConfiguration("contextBridge").get<string>("backendUrl", "https://codebridge-0cf6.onrender.com");
     const trimmed = configuredValue.trim();
     if (!trimmed) {
       throw new Error("The ContextBridge backend URL is not configured.");
