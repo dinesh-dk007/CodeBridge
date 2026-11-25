@@ -40,7 +40,10 @@
     "onCommand:contextbridge.addPendingTask",
     "onCommand:contextbridge.addKnownIssue",
     "onCommand:contextbridge.addCodingPreference",
-    "onCommand:contextbridge.refreshProjectAnalysis"
+    "onCommand:contextbridge.refreshProjectAnalysis",
+    "onStartupFinished",
+    "onCommand:contextbridge.enableChatCapture",
+    "onCommand:contextbridge.disableChatCapture"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -108,6 +111,14 @@
       {
         "command": "contextbridge.refreshProjectAnalysis",
         "title": "ContextBridge: Refresh Project Analysis"
+      },
+      {
+        "command": "contextbridge.enableChatCapture",
+        "title": "ContextBridge: Enable Copilot Chat Capture"
+      },
+      {
+        "command": "contextbridge.disableChatCapture",
+        "title": "ContextBridge: Disable Copilot Chat Capture"
       }
     ],
     "configuration": {

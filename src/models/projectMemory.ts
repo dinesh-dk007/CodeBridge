@@ -13,6 +13,13 @@ export interface ProjectDecision {
   confidence: DecisionConfidence;
 }
 
+export interface ChatPrompt {
+  id: string;
+  sessionId: string;
+  text: string;
+  capturedAt: string;
+}
+
 export interface ProjectMemory {
   schemaVersion: string;
   project: {
@@ -44,6 +51,7 @@ export interface ProjectMemory {
     librariesToAvoid: string[];
     additionalInstructions: string[];
   };
+  chatPrompts?: ChatPrompt[];
   metadata: {
     createdAt: string;
     updatedAt: string;

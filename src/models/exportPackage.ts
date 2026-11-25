@@ -1,4 +1,4 @@
-import { ProjectDecision } from "./projectMemory";
+import { ChatPrompt, ProjectDecision } from "./projectMemory";
 
 export const MEMORY_EXPORT_PACKAGE_FORMAT = "contextbridge-memory";
 export const MEMORY_EXPORT_PACKAGE_VERSION = "1.0.0";
@@ -26,6 +26,7 @@ export interface PortableProjectMemory {
     librariesToAvoid: string[];
     additionalInstructions: string[];
   };
+  chatPrompts?: ChatPrompt[];
 }
 
 export interface MemoryExportPackage {

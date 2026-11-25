@@ -65,6 +65,7 @@ function isPortableMemory(value: Record<string, unknown>): boolean {
     && isStringArray(requirements.constraints)
     && Array.isArray(value.decisions)
     && value.decisions.every(isDecision)
+    && (value.chatPrompts === undefined || (Array.isArray(value.chatPrompts) && value.chatPrompts.every(isChatPrompt)))
     && isRecord(developmentState)
     && isStringArray(developmentState.completedTasks)
     && isString(developmentState.currentTask)
@@ -74,6 +75,14 @@ function isPortableMemory(value: Record<string, unknown>): boolean {
     && isStringArray(preferences.conventions)
     && isStringArray(preferences.librariesToAvoid)
     && isStringArray(preferences.additionalInstructions);
+}
+
+function isChatPrompt(value: unknown): boolean {
+  return isRecord(value)
+    && isString(value.id)
+    && isString(value.sessionId)
+    && isString(value.text)
+    && isString(value.capturedAt);
 }
 
 function isDecision(value: unknown): boolean {

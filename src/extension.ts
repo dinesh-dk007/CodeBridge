@@ -15,6 +15,7 @@ import { createMemorySnapshot } from "./commands/createMemorySnapshot";
 import { refreshProjectAnalysisCommand } from "./commands/refreshProjectAnalysis";
 import { updateProjectCurrentTask } from "./commands/updateCurrentTask";
 import { viewProjectMemory } from "./commands/viewProjectMemory";
+import { registerChatCapture } from "./services/chatCaptureService";
 import { BackendTransferService } from "./services/backendTransferService";
 import { createTransferService } from "./services/transferService";
 
@@ -23,6 +24,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const transferService = createTransferService(context);
   const backendTransferService = new BackendTransferService();
   context.subscriptions.push(outputChannel);
+  registerChatCapture(context, outputChannel);
 
   context.subscriptions.push(
     vscode.commands.registerCommand("contextbridge.analyzeProject", () => analyzeProject(outputChannel)),

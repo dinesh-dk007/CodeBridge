@@ -25,6 +25,23 @@ The extension allows developers to maintain important project information, inclu
 
 Create snapshots of the current project memory to preserve the state of a project at a particular point in time.
 
+### Copilot Chat Capture
+
+ContextBridge AI can save the prompts you send in GitHub Copilot Chat into the project memory.
+
+1. Run `ContextBridge: Create Memory Snapshot` in your project.
+2. Run `ContextBridge: Enable Copilot Chat Capture`, or choose **Turn On** when the extension asks.
+3. Chat with Copilot as usual. Each prompt is added to `chatPrompts` in `.contextbridge/memory.json`.
+
+Notes:
+
+- The extension adds one hook file in `~/.copilot/hooks/`. Run `ContextBridge: Disable Copilot Chat Capture` to remove it.
+- Only prompts are saved, not Copilot's answers.
+- Capture works only in projects that have a memory snapshot.
+- The memory keeps the newest 200 prompts. Secrets such as API keys are replaced with `[REDACTED]`.
+- Exports and transfer codes include the prompts. File paths and URLs inside them are replaced with `[local path omitted]`.
+- Copilot hooks are a preview feature of VS Code and may change.
+
 ### Local Memory Transfer
 
 Project memory can be exported and imported locally, allowing context to be moved between compatible installations.

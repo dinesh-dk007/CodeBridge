@@ -7,7 +7,8 @@ import {
   MemoryExportPackage,
 } from "../models/exportPackage";
 import { ProjectMemory } from "../models/projectMemory";
-import { sanitizeProjectMemory } from "../utils/memorySanitizer";
+import { sanitizeProjectMemory, toPortablePromptText } from "../utils/memorySanitizer";
+import { isChatPrompt } from "./memoryService";
 
 export function createMemoryExportPackage(memory: ProjectMemory): MemoryExportPackage {
   const sanitized = sanitizeProjectMemory(memory);
@@ -18,6 +19,14 @@ export function createMemoryExportPackage(memory: ProjectMemory): MemoryExportPa
     developmentState: sanitized.developmentState,
     preferences: sanitized.preferences,
   };
+  if (memory.chatPrompts && memory.chatPrompts.length > 0) {
+    portableMemory.chatPrompts = memory.chatPrompts.map((prompt) => ({
+      id: prompt.id,
+      sessionId: prompt.sessionId,
+      capturedAt: prompt.capturedAt,
+      text: toPortablePromptText(prompt.text),
+    }));
+  }
 
   const result: MemoryExportPackage = {
     packageFormat: MEMORY_EXPORT_PACKAGE_FORMAT,
@@ -165,6 +174,7 @@ function isPortableMemory(value: Record<string, unknown>): boolean {
     && isStringArray(requirements.nonFunctional)
     && isStringArray(requirements.constraints)
     && Array.isArray(value.decisions)
+    && (value.chatPrompts === undefined || (Array.isArray(value.chatPrompts) && value.chatPrompts.every(isChatPrompt)))
     && isRecord(developmentState)
     && isStringArray(developmentState.completedTasks)
     && isString(developmentState.currentTask)

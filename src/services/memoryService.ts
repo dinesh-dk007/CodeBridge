@@ -1,12 +1,13 @@
 import * as vscode from "vscode";
 import { randomUUID } from "node:crypto";
 import { ProjectAnalysis } from "../models/projectAnalysis";
-import { PROJECT_MEMORY_SCHEMA_VERSION, ProjectMemory } from "../models/projectMemory";
+import { ChatPrompt, PROJECT_MEMORY_SCHEMA_VERSION, ProjectMemory } from "../models/projectMemory";
 
 export const memoryDirectoryName = ".contextbridge";
 export const memoryFileName = "memory.json";
 export const memorySource = "Generated from the ContextBridge Workspace Scanner";
 export const missingMemoryMessage = "No ContextBridge project memory was found. Please create a memory snapshot first.";
+export const MAX_CHAT_PROMPTS = 200;
 const memoryUpdateQueues = new Map<string, Promise<void>>();
 
 export class MissingProjectMemoryError extends Error {
@@ -214,6 +215,37 @@ export async function addCodingPreference(
   return updateMemory(folder, (memory) => addUnique(memory.preferences[category], text));
 }
 
+export async function addChatPrompts(
+  folder: vscode.WorkspaceFolder,
+  prompts: ChatPrompt[],
+): Promise<number> {
+  let added = 0;
+  await updateMemory(folder, (memory) => {
+    const existing = memory.chatPrompts ?? [];
+    const known = new Set(existing.map((prompt) => prompt.id));
+    const fresh: ChatPrompt[] = [];
+    for (const prompt of prompts) {
+      if (!known.has(prompt.id)) {
+        known.add(prompt.id);
+        fresh.push(prompt);
+      }
+    }
+
+    if (fresh.length === 0) {
+      return false;
+    }
+
+    added = fresh.length;
+    memory.chatPrompts = capChatPrompts([...existing, ...fresh]);
+    return true;
+  });
+  return added;
+}
+
+export function capChatPrompts(prompts: ChatPrompt[]): ChatPrompt[] {
+  return prompts.slice(-MAX_CHAT_PROMPTS);
+}
+
 export async function refreshProjectAnalysis(
   folder: vscode.WorkspaceFolder,
   analysis: ProjectAnalysis,
@@ -335,12 +367,21 @@ function isProjectMemory(value: unknown): value is ProjectMemory {
     && isStringArray(preferences.conventions)
     && isStringArray(preferences.librariesToAvoid)
     && isStringArray(preferences.additionalInstructions)
+    && (value.chatPrompts === undefined || (Array.isArray(value.chatPrompts) && value.chatPrompts.every(isChatPrompt)))
     && isRecord(metadata)
     && isString(metadata.createdAt)
     && isString(metadata.updatedAt)
     && isString(metadata.source)
     && (metadata.lastImportedAt === undefined || isString(metadata.lastImportedAt))
     && (metadata.importSource === undefined || isString(metadata.importSource));
+}
+
+export function isChatPrompt(value: unknown): value is ChatPrompt {
+  return isRecord(value)
+    && isString(value.id)
+    && isString(value.sessionId)
+    && isString(value.text)
+    && isString(value.capturedAt);
 }
 
 function isProjectDecision(value: unknown): boolean {

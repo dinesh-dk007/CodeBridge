@@ -4,8 +4,8 @@ import {
   PortableProjectMemory,
 } from "../models/exportPackage";
 import { ProjectAnalysis } from "../models/projectAnalysis";
-import { ProjectDecision, ProjectMemory } from "../models/projectMemory";
-import { createProjectMemory, getMemoryUri, loadMemory, memoryFileExists, saveMemory } from "./memoryService";
+import { ChatPrompt, ProjectDecision, ProjectMemory } from "../models/projectMemory";
+import { capChatPrompts, createProjectMemory, getMemoryUri, loadMemory, memoryFileExists, saveMemory } from "./memoryService";
 import { sanitizePortableValue } from "../utils/memorySanitizer";
 import { scanWorkspace } from "./workspaceScanner";
 
@@ -180,6 +180,10 @@ function applyImportedContext(
     target.preferences.additionalInstructions,
     imported.preferences.additionalInstructions,
   );
+
+  if (imported.chatPrompts) {
+    target.chatPrompts = mergeChatPrompts(target.chatPrompts ?? [], imported.chatPrompts);
+  }
 }
 
 export function replacePortableContext(
@@ -204,6 +208,22 @@ export function replacePortableContext(
     librariesToAvoid: [...imported.preferences.librariesToAvoid],
     additionalInstructions: [...imported.preferences.additionalInstructions],
   };
+  if (imported.chatPrompts) {
+    target.chatPrompts = capChatPrompts(imported.chatPrompts.map((prompt) => ({ ...prompt })));
+  }
+}
+
+function mergeChatPrompts(existing: ChatPrompt[], incoming: ChatPrompt[]): ChatPrompt[] {
+  const known = new Set(existing.map((prompt) => prompt.id));
+  const merged = [...existing];
+  for (const prompt of incoming) {
+    if (!known.has(prompt.id)) {
+      known.add(prompt.id);
+      merged.push({ ...prompt });
+    }
+  }
+  merged.sort((left, right) => (Date.parse(left.capturedAt) || 0) - (Date.parse(right.capturedAt) || 0));
+  return capChatPrompts(merged);
 }
 
 function mergeUnique(existing: string[], incoming: string[]): string[] {

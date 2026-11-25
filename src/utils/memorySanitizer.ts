@@ -53,11 +53,26 @@ function sanitizeValue(value: unknown, key?: string): unknown {
   return value;
 }
 
-function sanitizeString(value: string): string {
+export function redactSecrets(value: string): string {
   return value
     .replace(privateKeyBlock, "[private key omitted]")
     .replace(sensitiveAssignment, "$1$2[REDACTED]")
-    .replace(commonSecretToken, "[REDACTED]")
+    .replace(commonSecretToken, "[REDACTED]");
+}
+
+// Free text such as chat prompts can hold a lone "/" or "//" that sanitizeString keeps.
+// The export and backend path checks reject those, so they are rewritten here.
+const leftoverSlash = /(?<![:\w])\//g;
+const leftoverWindowsPath = /[A-Za-z]:\\|\\\\[^\\\s]+\\/g;
+
+export function toPortablePromptText(value: string): string {
+  return sanitizeString(value)
+    .replace(leftoverWindowsPath, "[local path omitted]")
+    .replace(leftoverSlash, "\u2215");
+}
+
+function sanitizeString(value: string): string {
+  return redactSecrets(value)
     .replace(windowsAbsolutePath, "[local path omitted]")
     .replace(unixHomePath, "[local path omitted]")
     .replace(unixAbsolutePath, "[local path omitted]");
